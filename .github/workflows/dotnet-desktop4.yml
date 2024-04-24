@@ -1,0 +1,46 @@
+name: .NET Core Console Application CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build_and_test:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'  
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.Solution_Name }}
+
+    - name: Build the solution
+      run: dotnet build ${{ env.Solution_Name }} --no-restore --configuration ${{ matrix.configuration }}
+
+    - name: Run tests
+      run: dotnet test ${{ env.Test_Project_Path }} --no-build --verbosity normal
+
+    - name: Publish build artifacts
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        name: Built-Application
+        path: TestProject/bin/Debug/net6.0/  # Измените на путь к вашему исполняемому файлу или папке с результатами сборки
+
+env:
+  Solution_Name: classes_laba2.sln                         # Замените на название вашего решения, например MyConsoleApp.sln.
+  Test_Project_Path: TestProject\TestProject.csproj       # Замените на путь к вашему тестовому проекту, например MyConsoleApp.Tests\MyConsoleApp.Tests.csproj.
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
